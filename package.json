@@ -1,0 +1,36 @@
+{
+  "name": "@dkocsis-emarsys/bamboo-state",
+  "version": "1.0.6",
+  "description": "Bamboo State is a stand-alone state management library written for Bamboo.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "webpack-dev-server --hot --mode development --port 27961",
+    "build": "webpack --mode production",
+    "test": "mocha --require @babel/register ./src/index.unit.spec.js"
+  },
+  "author": "dkocsis-emarsys",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkocsis-emarsys/bamboo-state.git"
+  },
+  "devDependencies": {
+    "@babel/core": "7.6.2",
+    "@babel/node": "7.6.2",
+    "@babel/preset-env": "7.6.2",
+    "babel-loader": "8.0.6",
+    "browserslist": "4.7.0",
+    "chai": "4.2.0",
+    "clean-webpack-plugin": "3.0.0",
+    "core-js": "3.2.1",
+    "mocha": "6.2.1",
+    "sinon": "7.5.0",
+    "sinon-chai": "3.3.0",
+    "webpack": "4.41.0",
+    "webpack-cli": "3.3.9",
+    "webpack-dev-server": "3.8.1"
+  },
+  "dependencies": {
+    "camelcase-keys-recursive": "0.8.3"
+  }
+}
