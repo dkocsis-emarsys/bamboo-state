@@ -1,12 +1,12 @@
 {
   "name": "@dkocsis-emarsys/bamboo-state",
-  "version": "1.0.6",
+  "version": "2.0.0",
   "description": "Bamboo State is a stand-alone state management library written for Bamboo.",
   "main": "dist/index.js",
   "scripts": {
     "start": "webpack-dev-server --hot --mode development --port 27961",
     "build": "webpack --mode production",
-    "test": "mocha --require @babel/register ./src/index.unit.spec.js"
+    "test": "mocha --require @babel/register ./test/index.unit.spec.js"
   },
   "author": "dkocsis-emarsys",
   "license": "ISC",

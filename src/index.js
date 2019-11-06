@@ -21,7 +21,7 @@ export default class State {
   set(name, value, options = {}) {
     const stateOptions = this._getOptions(name);
 
-    if (typeof value === 'function' && !options.storeFunction) {
+    if (typeof value === 'function' && options.isTransformFunction) {
       value = value(this._get(name, this._data));
     }
 

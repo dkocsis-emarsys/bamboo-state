@@ -1,4 +1,4 @@
-import State from './index.js';
+import State from '../src/index.js';
 
 const chai = require('chai');
 const sinon = require('sinon');
@@ -78,23 +78,23 @@ describe('State', () => {
         expect(state.get('a')).to.equal(1);
       });
 
-      it('sets value as function', () => {
-        const state = new State();
-
-        state.set('a', 2);
-        state.set('a', value => ++value);
-
-        expect(state.get('a')).to.equal(3);
-      });
-
       it('sets function as value', () => {
         const state = new State();
         const sampleFunction = value => ++value;
 
         state.set('a', 2);
-        state.set('a', sampleFunction, { storeFunction: true });
+        state.set('a', sampleFunction);
 
         expect(state.get('a')).to.equal(sampleFunction);
+      });
+
+      it('sets value as function', () => {
+        const state = new State();
+
+        state.set('a', 2);
+        state.set('a', value => ++value, { isTransformFunction: true });
+
+        expect(state.get('a')).to.equal(3);
       });
 
       it('sets deep data according to parameters', () => {
