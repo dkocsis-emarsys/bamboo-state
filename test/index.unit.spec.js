@@ -115,44 +115,15 @@ describe('State', () => {
           value: { c: 3, d: 4 }
         });
       });
-
-      it('calls render function', () => {
-        const renderSpy = sinon.spy();
-        const state = new State({}, renderSpy);
-
-        state.set('a', 1);
-
-        expect(renderSpy).to.have.been.calledOnce;
-      });
-
-      it('does not call render function if value has not changed but returns the value', () => {
-        const renderSpy = sinon.spy();
-        const state = new State({}, renderSpy);
-
-        state.set('a', 1);
-        const result = state.set('a', 1);
-
-        expect(renderSpy).to.have.been.calledOnce;
-        expect(result).to.equal(1);
-      });
     });
 
     context('calling with options', () => {
-      it('does not call render function when triggerRender set to false', () => {
-        const renderSpy = sinon.spy();
-        const state = new State({}, renderSpy);
-
-        state.set('a', 1, { triggerRender: false });
-
-        expect(renderSpy).not.to.have.been.called;
-      });
-
-      it('does not call subscribe function when triggerCallback set to false', () => {
+      it('does not call subscribe function when triggerSubscriptionCallbacks set to false', () => {
         const subscribeSpy = sinon.spy();
 
         const state = new State({});
         state.subscribe('a', subscribeSpy);
-        state.set('a', 1, { triggerCallback: false });
+        state.set('a', 1, { triggerSubscriptionCallback: false });
 
         expect(subscribeSpy).not.to.have.been.called;
       });
@@ -189,37 +160,6 @@ describe('State', () => {
           { name: 'b', value: 2 },
         ]);
       });
-
-      it('calls render function', () => {
-        const renderSpy = sinon.spy();
-        const state = new State({}, renderSpy);
-
-        state.setMultiple({ a: 1, b: 2 });
-
-        expect(renderSpy).to.have.been.calledOnce;
-      });
-    });
-
-    context('calling with options', () => {
-      it('does not call render function when triggerRender set to false', () => {
-        const renderSpy = sinon.spy();
-        const state = new State({}, renderSpy);
-
-        state.setMultiple({ a: 1, b: 2 }, { triggerRender: false });
-
-        expect(renderSpy).not.to.have.been.called;
-      });
-    });
-  });
-
-  describe('.render()', () => {
-    it('calls render function', () => {
-      const renderSpy = sinon.spy();
-      const state = new State({}, renderSpy);
-
-      state.render();
-
-      expect(renderSpy).to.have.been.calledOnce;
     });
   });
 
@@ -321,7 +261,7 @@ describe('State', () => {
 
       state.set('a', 1);
       const subscription = state.subscribe('', subscribeSpy);
-      state.triggerChange('a');
+      state.triggerSubscriptionCallbacks('a');
 
       expect(subscribeSpy).to.have.been.calledOnce;
       expect(subscribeSpy).to.have.been.calledWith({ a: 1 }, '');
@@ -354,13 +294,13 @@ describe('State', () => {
     });
   });
 
-  describe('.triggerChange(name)', () => {
+  describe('.triggerSubscriptionCallbacks(name)', () => {
     it('triggers subscription callback', () => {
       const subscribeSpy = sinon.spy();
       const state = new State({});
 
       const subscription = state.subscribe('a', subscribeSpy);
-      state.triggerChange('a');
+      state.triggerSubscriptionCallbacks('a');
 
       expect(subscribeSpy).to.have.been.calledOnce;
     });
@@ -370,7 +310,7 @@ describe('State', () => {
       const state = new State({});
 
       const subscription = state.subscribe('a', subscribeSpy);
-      state.triggerChange('a.b');
+      state.triggerSubscriptionCallbacks('a.b');
 
       expect(subscribeSpy).to.have.been.calledOnce;
     });
@@ -380,7 +320,7 @@ describe('State', () => {
       const state = new State({});
 
       const subscription = state.subscribe('a', subscribeSpy);
-      state.triggerChange();
+      state.triggerSubscriptionCallbacks();
 
       expect(subscribeSpy).to.have.been.calledOnce;
     });

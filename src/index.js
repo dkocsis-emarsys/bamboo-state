@@ -2,10 +2,9 @@ import camelcaseKeys from 'camelcase-keys-recursive';
 import deepMerge from './deep-merge';
 
 export default class State {
-  constructor(defaultData = {}, renderFunction = () => {}) {
+  constructor(defaultData = {}) {
     this._defaultData = defaultData;
     this._data = deepMerge({}, this._defaultData);
-    this._renderFunction = renderFunction;
     this._subscriptions = [];
     this._options = {};
   }
@@ -34,16 +33,17 @@ export default class State {
 
     this._data = deepMerge(this._data, modifiedData);
 
-    if (options.triggerCallback === undefined || options.triggerCallback) { this._triggerCallback(name, modifiedData); }
-    if (options.triggerRender === undefined || options.triggerRender) { this._renderFunction(); }
+    if (options.triggerSubscriptionCallback === undefined || options.triggerSubscriptionCallback) {
+      this._triggerSubscriptionCallbacks(name, modifiedData);
+    }
 
     return { name, value };
   }
 
   setMultiple(list, options = {}) {
-    const result = Object.keys(list).map(name => this.set(name, list[name], { triggerRender: false }));
+    const result = Object.keys(list).map(name => this.set(name, list[name], { triggerSubscriptionCallback: false }));
 
-    if (options.triggerRender === undefined || options.triggerRender) { this._renderFunction(); }
+    this._triggerSubscriptionCallbacks();
 
     return result;
   }
@@ -88,22 +88,19 @@ export default class State {
     });
   }
 
-  triggerChange(name) {
-    this._triggerCallback(name);
-  }
-
-  render() {
-    this._renderFunction();
+  triggerSubscriptionCallbacks(name) {
+    this._triggerSubscriptionCallbacks(name);
   }
 
   _hasSubArray(master, sub) {
     return sub.every((i => v => i = master.indexOf(v, i) + 1)(0));
   };
 
-  _triggerCallback(name, modifiedData) {
+  _triggerSubscriptionCallbacks(name, modifiedData) {
     if (!this._subscriptions) { return; }
 
-    const modifiedKeys = typeof modifiedData === 'object' && modifiedData.constructor === Object ? this._objectToDotNotation(modifiedData) : [];
+    const modifiedKeys = typeof modifiedData === 'object' && modifiedData.constructor === Object ?
+      this._objectToDotNotation(modifiedData) : [];
 
     this._subscriptions.forEach(subscription => {
       if (!name || !subscription.name || this._hasSubArray(name.split('.'), subscription.name.split('.')) || modifiedKeys.indexOf(subscription.name) !== -1) {
