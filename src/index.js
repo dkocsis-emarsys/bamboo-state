@@ -20,12 +20,13 @@ export default class State {
 
   set(name, value, options = {}) {
     const stateOptions = this._getOptions(name);
+    const oldValue = this._get(name, this._data);
 
     if (typeof value === 'function' && options.isTransformFunction) {
-      value = value(this._get(name, this._data));
+      value = value(oldValue, this._getDefaultValue(name));
     }
 
-    value = this._transformValue(value, stateOptions);
+    value = this._transformValue(value, oldValue, stateOptions);
 
     const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), value);
 
@@ -51,12 +52,16 @@ export default class State {
     this._options[name] = options;
   }
 
-  getDefaultValue(name) {
+  _getDefaultValue(name) {
     const options = this._getOptions(name);
 
     if (!options) { return; }
 
     return options.defaultValue;
+  }
+
+  getDefaultValue(name) {
+    return this._getDefaultValue(name);
   }
 
   subscribe(name, callback) {
@@ -156,11 +161,13 @@ export default class State {
     return options;
   }
 
-  _transformValue(value, rule = {}) {
+  _transformValue(value, oldValue, rule = {}) {
     if (!rule) { return value; }
 
     switch (rule.type) {
-      case 'custom': value = rule.transformFunction(value); break;
+      case 'custom': {
+        value = rule.transformFunction(value, oldValue, rule.defaultValue);
+      } break;
       case 'number': {
         value = Number(value);
         if (isNaN(value)) { value = 0; }
