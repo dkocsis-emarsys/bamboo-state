@@ -1,8 +1,8 @@
-const isObject = item => {
-  return (item && typeof item === 'object' && !Array.isArray(item) && item !== null && !(item instanceof EventTarget));
+export const isObject = item => {
+  return (item && typeof item === 'object' && !Array.isArray(item) && item !== null && !(typeof EventTarget !== 'undefined' && item instanceof EventTarget));
 }
 
-const deepMerge = (target, source) => {
+export const deepMerge = (target, source) => {
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach(key => {
       if (isObject(source[key])) {
@@ -18,5 +18,3 @@ const deepMerge = (target, source) => {
 
   return target;
 }
-
-export default deepMerge;

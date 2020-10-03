@@ -1,16 +1,17 @@
 import camelcaseKeys from 'camelcase-keys-recursive';
-import deepMerge from './deep-merge';
+import { deepMerge, isObject } from './deep-merge';
 
 export default class State {
-  constructor(defaultData = {}) {
-    this._defaultData = defaultData;
-    this._data = deepMerge({}, this._defaultData);
+  constructor(defaultState = {}) {
     this._subscriptions = [];
+    this._data = {};
     this._options = {};
+
+    this._setDefaultState(defaultState);
   }
 
   _get(name, data) {
-    return name ? name.split('.').reduce((item, index) => item ? item[index] : false, data) : data;
+    return name ? name.split('.').reduce((item, index) => item ? item[index] : undefined, data) : data;
   }
 
   get(name) {
@@ -29,7 +30,7 @@ export default class State {
 
     const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), value);
 
-    if (this._get(name, this._data) === this._get(name, modifiedData)) { return value; }
+    if (this._get(name, this._data) === this._get(name, modifiedData)) { return { name, value }; }
 
     this._data = deepMerge(this._data, modifiedData);
 
@@ -50,6 +51,18 @@ export default class State {
 
   setOptions(name, options) {
     this._options[name] = options;
+
+    if (options.defaultValue && this.get(name) === undefined) {
+      const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), options.defaultValue);
+      
+      this._data = deepMerge(this._data, modifiedData);
+    }
+  }
+
+  _setDefaultState(defaultState) {
+    const modifiedData = this._objectToDotNotation(defaultState);
+
+    Object.keys(modifiedData).forEach(key => this.setOptions(key, { defaultValue: modifiedData[key] }));
   }
 
   _getDefaultValue(name) {
@@ -100,7 +113,7 @@ export default class State {
     if (!this._subscriptions) { return; }
 
     const modifiedKeys = typeof modifiedData === 'object' && modifiedData.constructor === Object ?
-      this._objectToDotNotation(modifiedData) : [];
+      Object.keys(this._objectToDotNotation(modifiedData)) : [];
 
     this._subscriptions.forEach(subscription => {
       if (!name || !subscription.name || this._hasSubArray(name.split('.'), subscription.name.split('.')) || modifiedKeys.indexOf(subscription.name) !== -1) {
@@ -117,18 +130,18 @@ export default class State {
     });
   }
 
-  _objectToDotNotation(data, prefix = '', keys = []) {
+  _objectToDotNotation(data, prefix = '', result = {}) {
     return Object.entries(data).reduce((list, [key, value]) => {
       const flattenedKey = `${prefix}${key}`;
 
-      if (value && typeof value === 'object' && value.constructor === Object) {
+      if (isObject(value)) {
         this._objectToDotNotation(value, `${flattenedKey}.`, list);
       } else {
-        keys.push(flattenedKey);
+        result[flattenedKey] = value;
       }
 
       return list;
-    }, keys);
+    }, result);
   }
 
   _getOptions(name) {

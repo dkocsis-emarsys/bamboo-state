@@ -281,6 +281,17 @@ describe('State', () => {
       expect(subscribeSpy).to.have.been.calledOnce;
     });
 
+    it('does not trigger another call on the same value', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State({});
+
+      const subscription = state.subscribe('a', subscribeSpy);
+      state.set('a', 1);
+      state.set('a', 1);
+
+      expect(subscribeSpy).to.have.been.calledOnce;
+    });
+
     it('does not trigger another call on the whole namespace', () => {
       const subscribeSpy = sinon.spy();
       const state = new State({});
@@ -327,9 +338,27 @@ describe('State', () => {
   });
 
   describe('.setOptions(name)', () => {
-    it('sets then gets defaultValue', () => {
+    it('sets then gets defaultValue with .get', () => {
       const subscribeSpy = sinon.spy();
       const state = new State({});
+
+      state.setOptions('a', { defaultValue: 1 });
+
+      expect(state.get('a')).to.equal(1);
+    });
+
+    it('sets then gets previously set value instead of defaultValue with .get', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State({ a: true });
+
+      state.setOptions('a', { defaultValue: 1 });
+
+      expect(state.get('a')).to.equal(true);
+    });
+
+    it('sets then gets defaultValue', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State({ a: true });
 
       state.setOptions('a', { defaultValue: 1 });
 
