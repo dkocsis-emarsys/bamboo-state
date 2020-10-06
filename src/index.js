@@ -1,5 +1,5 @@
 import camelcaseKeys from 'camelcase-keys-recursive';
-import { deepMerge, isObject } from './deep-merge';
+import { deepMerge, isPlainObject } from './deep-merge';
 
 export default class State {
   constructor(defaultState = {}) {
@@ -52,9 +52,8 @@ export default class State {
   setOptions(name, options) {
     this._options[name] = options;
 
-    if (options.defaultValue && this.get(name) === undefined) {
+    if (options.defaultValue !== undefined && this.get(name) === undefined) {
       const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), options.defaultValue);
-      
       this._data = deepMerge(this._data, modifiedData);
     }
   }
@@ -134,7 +133,7 @@ export default class State {
     return Object.entries(data).reduce((list, [key, value]) => {
       const flattenedKey = `${prefix}${key}`;
 
-      if (isObject(value)) {
+      if (isPlainObject(value)) {
         this._objectToDotNotation(value, `${flattenedKey}.`, list);
       } else {
         result[flattenedKey] = value;

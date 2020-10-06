@@ -347,6 +347,15 @@ describe('State', () => {
       expect(state.get('a')).to.equal(1);
     });
 
+    it('sets falsy value then gets defaultValue with .get', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State({});
+
+      state.setOptions('a', { defaultValue: 0 });
+
+      expect(state.get('a')).to.equal(0);
+    });
+
     it('sets then gets previously set value instead of defaultValue with .get', () => {
       const subscribeSpy = sinon.spy();
       const state = new State({ a: true });
