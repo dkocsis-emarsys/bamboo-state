@@ -161,6 +161,17 @@ describe('State', () => {
         ]);
       });
     });
+
+    context('calling with options', () => {
+      it('sets multiple simple data with options', () => {
+        const state = new State();
+
+        state.setMultiple({ a: 1, b: 2 }, { defaultValue: 3 });
+
+        expect(state.getDefaultValue('a')).to.equal(3);
+        expect(state.getDefaultValue('b')).to.equal(3);
+      });
+    });
   });
 
   describe('.subscribe(name, callback)', () => {
@@ -305,7 +316,7 @@ describe('State', () => {
     });
   });
 
-  describe('.triggerSubscriptionCallbacks(name)', () => {
+  describe('.triggerSubscriptionCallbacks(name, options)', () => {
     it('triggers subscription callback', () => {
       const subscribeSpy = sinon.spy();
       const state = new State({});
@@ -314,6 +325,28 @@ describe('State', () => {
       state.triggerSubscriptionCallbacks('a');
 
       expect(subscribeSpy).to.have.been.calledOnce;
+    });
+
+    it('triggers subscription callback with options', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State({ a: 'test value' });
+
+      const subscription = state.subscribe('a', subscribeSpy);
+      state.triggerSubscriptionCallbacks('a', { b: true });
+
+      expect(subscribeSpy).to.have.been.calledWith('test value', 'a', { b: true });
+    });
+
+
+    it('triggers subscription callback from set', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State();
+
+      const subscription = state.subscribe('a', subscribeSpy);
+
+      state.set('a', 'test value', { b: true });
+
+      expect(subscribeSpy).to.have.been.calledWith('test value', 'a', { b: true });
     });
 
     it('name contains "." triggers subscription callback', () => {

@@ -35,14 +35,16 @@ export default class State {
     this._data = deepMerge(this._data, modifiedData);
 
     if (options.triggerSubscriptionCallback === undefined || options.triggerSubscriptionCallback) {
-      this._triggerSubscriptionCallbacks(name, modifiedData);
+      this._triggerSubscriptionCallbacks(name, modifiedData, options);
     }
 
     return { name, value };
   }
 
   setMultiple(list, options = {}) {
-    const result = Object.keys(list).map(name => this.set(name, list[name], { triggerSubscriptionCallback: false }));
+    const result = Object.keys(list).map(name => this.set(name, list[name], {
+      ...options, triggerSubscriptionCallback: false
+    }));
 
     this._triggerSubscriptionCallbacks();
 
@@ -100,15 +102,15 @@ export default class State {
     });
   }
 
-  triggerSubscriptionCallbacks(name) {
-    this._triggerSubscriptionCallbacks(name);
+  triggerSubscriptionCallbacks(name, options) {
+    this._triggerSubscriptionCallbacks(name, false, options);
   }
 
   _hasSubArray(master, sub) {
     return sub.every((i => v => i = master.indexOf(v, i) + 1)(0));
   };
 
-  _triggerSubscriptionCallbacks(name, modifiedData) {
+  _triggerSubscriptionCallbacks(name, modifiedData, options) {
     if (!this._subscriptions) { return; }
 
     const modifiedKeys = typeof modifiedData === 'object' && modifiedData.constructor === Object ?
@@ -116,7 +118,7 @@ export default class State {
 
     this._subscriptions.forEach(subscription => {
       if (!name || !subscription.name || this._hasSubArray(name.split('.'), subscription.name.split('.')) || modifiedKeys.indexOf(subscription.name) !== -1) {
-        subscription.callback(this._get(subscription.name, this._data), subscription.name);
+        subscription.callback(this._get(subscription.name, this._data), subscription.name, options);
       }
     });
   }
