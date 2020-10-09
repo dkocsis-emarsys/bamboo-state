@@ -19,6 +19,10 @@ export default class State {
   }
 
   set(name, value, options = {}) {
+    if (options.defaultValue !== undefined) {
+      this.setOptions(name, { defaultValue: options.defaultValue });
+    }
+
     const stateOptions = this._getOptions(name);
     const oldValue = this._get(name, this._data);
 

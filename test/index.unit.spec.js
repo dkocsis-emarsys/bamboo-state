@@ -78,6 +78,15 @@ describe('State', () => {
         expect(state.get('a')).to.equal(1);
       });
 
+      it('sets simple data with defaultValue option', () => {
+        const state = new State();
+
+        state.set('a', 1, { defaultValue: 2 });
+
+        expect(state.get('a')).to.equal(1);
+        expect(state.getDefaultValue('a')).to.equal(2);
+      });
+
       it('sets function as value', () => {
         const state = new State();
         const sampleFunction = value => ++value;
