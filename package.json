@@ -1,6 +1,6 @@
 {
   "name": "@dkocsis-emarsys/bamboo-state",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "Bamboo State is a stand-alone state management library written for Bamboo.",
   "main": "dist/index.js",
   "scripts": {
@@ -33,7 +33,5 @@
   },
   "dependencies": {
     "camelcase-keys-recursive": "1.0.0"
-  },
-  "sideEffects": false,
-  "type": "module"
+  }
 }

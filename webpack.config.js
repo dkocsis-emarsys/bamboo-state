@@ -1,15 +1,15 @@
-import webpack from 'webpack';
-import path from 'path';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+const webpack = require('webpack');
+const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-export default {
+module.exports = {
   entry: {
     main: './src/index.js'
   },
   output: {
     path: path.resolve(path.resolve(), './dist'),
     filename: 'index.js',
-    libraryTarget: 'umd'
+    libraryTarget: 'commonjs'
   },
   module: {
     rules: [
@@ -17,7 +17,19 @@ export default {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader'
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  'targets': {
+                    'esmodules': true
+                  }
+                }
+              ]
+            ]
+          }
         }
       }
     ]
