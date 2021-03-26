@@ -1,13 +1,13 @@
-const webpack = require('webpack');
-const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+import webpack from 'webpack';
+import path from 'path';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 
-module.exports = {
+export default {
   entry: {
     main: './src/index.js'
   },
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(path.resolve(), './dist'),
     filename: 'index.js',
     libraryTarget: 'umd'
   },

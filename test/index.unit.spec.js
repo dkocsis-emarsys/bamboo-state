@@ -1,8 +1,8 @@
-import State from '../src/index.js';
+import chai from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
-const chai = require('chai');
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
+import State from '../src/index.js';
 
 chai.use(sinonChai);
 global.expect = chai.expect;

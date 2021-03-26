@@ -1,5 +1,5 @@
 import camelcaseKeys from 'camelcase-keys-recursive';
-import { deepMerge, isPlainObject } from './deep-merge';
+import { deepMerge, isPlainObject } from './deep-merge.js';
 
 export default class State {
   constructor(defaultState = {}) {
