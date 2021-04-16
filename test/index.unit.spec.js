@@ -101,7 +101,7 @@ describe('State', () => {
         const state = new State();
 
         state.set('a', 2);
-        state.set('a', value => ++value, { isTransformFunction: true });
+        state.set('a', value => ++value, { isFunction: true });
 
         expect(state.get('a')).to.equal(3);
       });
@@ -130,7 +130,7 @@ describe('State', () => {
       it('does not call subscribe function when triggerSubscriptionCallbacks set to false', () => {
         const subscribeSpy = sinon.spy();
 
-        const state = new State({});
+        const state = new State();
         state.subscribe('a', subscribeSpy);
         state.set('a', 1, { triggerSubscriptionCallback: false });
 
@@ -139,12 +139,12 @@ describe('State', () => {
     });
   });
 
-  describe('.setMultiple(list, options = {})', () => {
+  describe('.set(list, options = {})', () => {
     context('calling without options', () => {
       it('sets multiple simple data according to parameters', () => {
         const state = new State();
 
-        state.setMultiple({ a: 1, b: 2 });
+        state.set({ a: 1, b: 2 });
 
         expect(state.get('a')).to.equal(1);
         expect(state.get('b')).to.equal(2);
@@ -153,7 +153,7 @@ describe('State', () => {
       it('sets multiple deep data according to parameters', () => {
         const state = new State();
 
-        state.setMultiple({ a: { c: 3 }, b: { d: 4 } });
+        state.set({ a: { c: 3 }, b: { d: 4 } });
 
         expect(state.get('a.c')).to.equal(3);
         expect(state.get('b.d')).to.equal(4);
@@ -162,7 +162,7 @@ describe('State', () => {
       it('returns the value', () => {
         const state = new State();
 
-        const result = state.setMultiple({ a: 1, b: 2 });
+        const result = state.set({ a: 1, b: 2 });
 
         expect(result).to.deep.equal([
           { name: 'a', value: 1 },
@@ -175,7 +175,7 @@ describe('State', () => {
       it('sets multiple simple data with options', () => {
         const state = new State();
 
-        state.setMultiple({ a: 1, b: 2 }, { defaultValue: 3 });
+        state.set({ a: 1, b: 2 }, { defaultValue: 3 });
 
         expect(state.getDefaultValue('a')).to.equal(3);
         expect(state.getDefaultValue('b')).to.equal(3);
@@ -186,7 +186,7 @@ describe('State', () => {
   describe('.subscribe(name, callback)', () => {
     it('calls callback function with value and name', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.subscribe('a', subscribeSpy);
       state.set('a', 1);
@@ -197,7 +197,7 @@ describe('State', () => {
 
     it('subscribes to an array', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.subscribe(['a', 'b'], subscribeSpy);
       state.set('a', 1);
@@ -213,7 +213,7 @@ describe('State', () => {
 
     it('name contains "." calls callback function with value and name', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.subscribe('a.b', subscribeSpy);
       state.set('a.b', 2);
@@ -224,7 +224,7 @@ describe('State', () => {
 
     it('calls callback function with value and name for any changes occured in parent', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.subscribe('a', subscribeSpy);
       state.set('a', {});
@@ -240,7 +240,7 @@ describe('State', () => {
 
    it('calls callback function with deep value for any changes', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.subscribe('a.b', subscribeSpy);
       state.set('a', { b: 2 });
@@ -251,7 +251,7 @@ describe('State', () => {
 
     it('does not trigger another call after unsubscribe', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.set('a', 1);
@@ -263,7 +263,7 @@ describe('State', () => {
 
     it('does not trigger another call after unsubscribe if subscribed to array', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe(['a', 'b'], subscribeSpy);
       state.set('a', 1);
@@ -277,7 +277,7 @@ describe('State', () => {
 
     it('triggering change manually calls callback function of unnamed subscriptions', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.set('a', 1);
       const subscription = state.subscribe('', subscribeSpy);
@@ -291,7 +291,7 @@ describe('State', () => {
   describe('.unsubscribeAll(name)', () => {
     it('does not trigger another call', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.set('a', 1);
@@ -303,7 +303,7 @@ describe('State', () => {
 
     it('does not trigger another call on the same value', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.set('a', 1);
@@ -312,9 +312,21 @@ describe('State', () => {
       expect(subscribeSpy).to.have.been.calledOnce;
     });
 
+    it('does trigger another call on the same value with same reference check disabled', () => {
+      const subscribeSpy = sinon.spy();
+      const state = new State();
+      state.setOptions('a', { sameReferenceCheck: false });
+
+      const subscription = state.subscribe('a', subscribeSpy);
+      state.set('a', 1);
+      state.set('a', 1);
+
+      expect(subscribeSpy).to.have.been.calledTwice;
+    });
+
     it('does not trigger another call on the whole namespace', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.set('a', 1);
@@ -328,7 +340,7 @@ describe('State', () => {
   describe('.triggerSubscriptionCallbacks(name, options)', () => {
     it('triggers subscription callback', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.triggerSubscriptionCallbacks('a');
@@ -360,7 +372,7 @@ describe('State', () => {
 
     it('name contains "." triggers subscription callback', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.triggerSubscriptionCallbacks('a.b');
@@ -370,7 +382,7 @@ describe('State', () => {
 
     it('undefined name triggers callback on every subscription', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       const subscription = state.subscribe('a', subscribeSpy);
       state.triggerSubscriptionCallbacks();
@@ -382,7 +394,7 @@ describe('State', () => {
   describe('.setOptions(name)', () => {
     it('sets then gets defaultValue with .get', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { defaultValue: 1 });
 
@@ -391,7 +403,7 @@ describe('State', () => {
 
     it('sets falsy value then gets defaultValue with .get', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { defaultValue: 0 });
 
@@ -418,7 +430,7 @@ describe('State', () => {
 
     it('sets then gets defaultValue by group', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { defaultValue: 2 });
       state.setOptions('a.b', { defaultValue: 1 });
@@ -428,7 +440,7 @@ describe('State', () => {
 
     it('sets then gets defaultValue of group', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { defaultValue: 1 });
 
@@ -438,7 +450,7 @@ describe('State', () => {
     context('format', () => {
       it('number', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'number' });
         state.set('a', '1');
@@ -448,7 +460,7 @@ describe('State', () => {
 
       it('number is NaN falls back to 0', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'number' });
         state.set('a', 'test');
@@ -458,7 +470,7 @@ describe('State', () => {
 
       it('integer', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'integer' });
         state.set('a', '1.2');
@@ -468,7 +480,7 @@ describe('State', () => {
 
       it('integer isNaN falls back to 0', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'integer' });
         state.set('a', 'test');
@@ -478,7 +490,7 @@ describe('State', () => {
 
       it('float', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'float' });
         state.set('a', '1.2');
@@ -488,7 +500,7 @@ describe('State', () => {
 
       it('float isNaN falls back to 0', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'float' });
         state.set('a', 'test');
@@ -498,7 +510,7 @@ describe('State', () => {
 
       it('boolean', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'boolean' });
         state.set('a', 'false');
@@ -508,7 +520,7 @@ describe('State', () => {
 
       it('json', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'json' });
         state.set('a', '{ "b": "2" }');
@@ -518,7 +530,7 @@ describe('State', () => {
 
       it('wrong json not throws error', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'json' });
 
@@ -527,7 +539,7 @@ describe('State', () => {
 
       it('json camelcase keys', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', { type: 'json' });
         state.set('a', '{ "php_like_name": 2 }');
@@ -538,11 +550,11 @@ describe('State', () => {
 
       it('custom', () => {
         const subscribeSpy = sinon.spy();
-        const state = new State({});
+        const state = new State();
 
         state.setOptions('a', {
           type: 'custom',
-          transformFunction: value => value + 1
+          function: value => value + 1
         });
         state.set('a', 1);
 
@@ -552,7 +564,7 @@ describe('State', () => {
 
     it('sets allowedValues', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { allowedValues: ['lorem', 'ipsum'] });
       state.set('a', 'dolor');
@@ -566,7 +578,7 @@ describe('State', () => {
 
     it('sets allowedValues and falls back to default value', () => {
       const subscribeSpy = sinon.spy();
-      const state = new State({});
+      const state = new State();
 
       state.setOptions('a', { allowedValues: ['lorem', 'ipsum'], defaultValue: 'ipsum' });
       state.set('a', 'dolor');

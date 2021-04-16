@@ -2,16 +2,18 @@ import camelcaseKeys from 'camelcase-keys-recursive';
 import { deepMerge, isPlainObject } from './deep-merge.js';
 
 export default class State {
-  constructor(defaultState = {}) {
+  constructor(defaults = {}) {
     this._subscriptions = [];
     this._data = {};
     this._options = {};
+    this._defaultOptions = {
+      defaultValue: undefined,
+      triggerSubscriptionCallback: undefined,
+      isFunction: false,
+      sameReferenceCheck: true
+    };
 
-    this._setDefaultState(defaultState);
-  }
-
-  _get(name, data) {
-    return name ? name.split('.').reduce((item, index) => item ? item[index] : undefined, data) : data;
+    this._setDefaults(defaults);
   }
 
   get(name) {
@@ -19,6 +21,10 @@ export default class State {
   }
 
   set(name, value, options = {}) {
+    if (typeof name === 'object') {
+      return this._setMultiple(name, value);
+    }
+
     if (options.defaultValue !== undefined) {
       this.setOptions(name, { defaultValue: options.defaultValue });
     }
@@ -26,15 +32,16 @@ export default class State {
     const stateOptions = this._getOptions(name);
     const oldValue = this._get(name, this._data);
 
-    if (typeof value === 'function' && options.isTransformFunction) {
+    if (typeof value === 'function' && options.isFunction) {
       value = value(oldValue, this._getDefaultValue(name));
     }
 
     value = this._transformValue(value, oldValue, stateOptions);
 
     const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), value);
+    const sameReferenceCheck = stateOptions && stateOptions.sameReferenceCheck;
 
-    if (this._get(name, this._data) === this._get(name, modifiedData)) { return { name, value }; }
+    if (sameReferenceCheck && this._get(name, this._data) === this._get(name, modifiedData)) { return { name, value }; }
 
     this._data = deepMerge(this._data, modifiedData);
 
@@ -45,16 +52,6 @@ export default class State {
     return { name, value };
   }
 
-  setMultiple(list, options = {}) {
-    const result = Object.keys(list).map(name => this.set(name, list[name], {
-      ...options, triggerSubscriptionCallback: false
-    }));
-
-    this._triggerSubscriptionCallbacks();
-
-    return result;
-  }
-
   setOptions(name, options) {
     this._options[name] = options;
 
@@ -62,20 +59,6 @@ export default class State {
       const modifiedData = name.split('.').reduceRight((previous, current) => ({ [current]: previous }), options.defaultValue);
       this._data = deepMerge(this._data, modifiedData);
     }
-  }
-
-  _setDefaultState(defaultState) {
-    const modifiedData = this._objectToDotNotation(defaultState);
-
-    Object.keys(modifiedData).forEach(key => this.setOptions(key, { defaultValue: modifiedData[key] }));
-  }
-
-  _getDefaultValue(name) {
-    const options = this._getOptions(name);
-
-    if (!options) { return; }
-
-    return options.defaultValue;
   }
 
   getDefaultValue(name) {
@@ -108,6 +91,34 @@ export default class State {
 
   triggerSubscriptionCallbacks(name, options) {
     this._triggerSubscriptionCallbacks(name, false, options);
+  }
+
+  _get(name, data) {
+    return name ? name.split('.').reduce((item, index) => item ? item[index] : undefined, data) : data;
+  }
+
+  _setMultiple(list, options = {}) {
+    const result = Object.keys(list).map(name => this.set(name, list[name], {
+      ...options, triggerSubscriptionCallback: false
+    }));
+
+    this._triggerSubscriptionCallbacks();
+
+    return result;
+  }
+
+  _setDefaults(defaults) {
+    const modifiedData = this._objectToDotNotation(defaults);
+
+    Object.keys(modifiedData).forEach(key => this.setOptions(key, { defaultValue: modifiedData[key] }));
+  }
+
+  _getDefaultValue(name) {
+    const options = this._getOptions(name);
+
+    if (!options) { return; }
+
+    return options.defaultValue;
   }
 
   _hasSubArray(master, sub) {
@@ -173,7 +184,7 @@ export default class State {
       options = optionsList[partialName] || options;
     }
 
-    return options;
+    return { ...this._defaultOptions, ...options };
   }
 
   _transformValue(value, oldValue, rule = {}) {
@@ -181,7 +192,7 @@ export default class State {
 
     switch (rule.type) {
       case 'custom': {
-        value = rule.transformFunction(value, oldValue, rule.defaultValue);
+        value = rule.function(value, oldValue, rule.defaultValue);
       } break;
       case 'number': {
         value = Number(value);
@@ -195,7 +206,7 @@ export default class State {
         value = parseFloat(value);
         if (isNaN(value)) { value = 0; }
       } break;
-      case 'boolean': value = this._convertAttributeToBoolean(value); break;
+      case 'boolean': value = this._toBoolean(value); break;
       case 'json': {
         if (typeof value !== 'string') { break; }
 
@@ -211,7 +222,7 @@ export default class State {
     return value;
   }
 
-  _convertAttributeToBoolean(value) {
+  _toBoolean(value) {
     return value !== undefined && value !== null && value !== false && value !== 'false';
   }
 }
